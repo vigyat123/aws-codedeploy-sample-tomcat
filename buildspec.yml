@@ -1,12 +1,10 @@
 version: 0.1
 phases:
-  during_build:
+  build:
     commands:
-      - echo Build started on `date`
       - mvn package
 artifacts:
   type: NONE
-  files:
   files:
     - appspec.yml
     - target/SampleMavenTomcatApp.war
