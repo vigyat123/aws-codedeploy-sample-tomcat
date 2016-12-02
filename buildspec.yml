@@ -4,13 +4,7 @@ phases:
     commands:
       - mvn package
 artifacts:
-  type: NONE
   files:
     - appspec.yml
     - target/SampleMavenTomcatApp.war
-    - scripts/basic_health_check.sh
-    - scripts/configure_http_port.xsl
-    - scripts/install_dependencies
-    - scripts/start_application
-    - scripts/stop_application
-    - scripts/write_codedeploy_config.sh
+    - scripts/*
