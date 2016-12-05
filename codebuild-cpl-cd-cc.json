@@ -2,6 +2,11 @@
   "Description":"Integrate CodeBuild with CodePipeline. **WARNING** This template creates one or more Amazon EC2 instances. You will be billed for the AWS resources used if you create a stack from this template.",
   "AWSTemplateFormatVersion":"2010-09-09",
   "Parameters":{
+    "EmailAddress":{
+      "Description":"Email Address",
+      "Default":"paul.duvall@stelligent.com",
+      "Type":"String"
+    },
     "RepositoryName":{
       "Description":"The name of the CodeCommit repo",
       "Type":"String",
@@ -80,6 +85,42 @@
     }
   },
   "Resources":{
+    "CodeBuildRole":{
+      "Type":"AWS::IAM::Role",
+      "Properties":{
+        "AssumeRolePolicyDocument":{
+          "Statement":[
+            {
+              "Effect":"Allow",
+              "Principal":{
+                "Service":[
+                  "codebuild.amazonaws.com"
+                ]
+              },
+              "Action":[
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path":"/",
+        "Policies":[
+          {
+            "PolicyName":"codebuild-service",
+            "PolicyDocument":{
+              "Statement":[
+                {
+                  "Effect":"Allow",
+                  "Action":"*",
+                  "Resource":"*"
+                }
+              ],
+              "Version":"2012-10-17"
+            }
+          }
+        ]
+      }
+    },
     "CodeDeployRole":{
       "Type":"AWS::IAM::Role",
       "Properties":{
@@ -116,6 +157,114 @@
         ]
       }
     },
+    "CodePipelineRole":{
+      "Type":"AWS::IAM::Role",
+      "Properties":{
+        "AssumeRolePolicyDocument":{
+          "Statement":[
+            {
+              "Effect":"Allow",
+              "Principal":{
+                "Service":[
+                  "codepipeline.amazonaws.com"
+                ]
+              },
+              "Action":[
+                "sts:AssumeRole"
+              ]
+            }
+          ]
+        },
+        "Path":"/",
+        "Policies":[
+          {
+            "PolicyName":"codepipeline-service",
+            "PolicyDocument":{
+              "Statement":[
+                {
+                  "Effect":"Allow",
+                  "Action":"*",
+                  "Resource":"*"
+                }
+              ],
+              "Version":"2012-10-17"
+            }
+          }
+        ]
+      }
+    },
+    "CodeBuildProject":{
+      "Type":"AWS::CodeBuild::Project",
+      "DependsOn":"CodeBuildRole",
+      "Properties":{
+        "Name":{
+          "Ref":"AWS::StackName"
+        },
+        "Description":"Build Java application",
+        "ServiceRole":{
+          "Fn::GetAtt":[
+            "CodeBuildRole",
+            "Arn"
+          ]
+        },
+        "Artifacts":{
+          "Type":"no_artifacts"
+        },
+        "Environment":{
+          "Type":"linuxContainer",
+          "ComputeType":"BUILD_GENERAL1_SMALL",
+          "Image":"aws/codebuild/java:openjdk-8",
+          "EnvironmentVariables":[
+            {
+              "Name":"varName",
+              "Value":"varValue"
+            }
+          ]
+        },
+        "Source":{
+          "Location":{
+            "Fn::Join":[
+              "",
+              [
+                "https://git-codecommit.",
+                {
+                  "Ref":"AWS::Region"
+                },
+                ".amazonaws.com/v1/repos/",
+                {
+                  "Ref":"RepositoryName"
+                }
+              ]
+            ]
+          },
+          "Type":"CODECOMMIT"
+        },
+        "TimeoutInMinutes":10,
+        "Tags":[
+          {
+            "Key":"Key1",
+            "Value":"Value1"
+          },
+          {
+            "Key":"Key2",
+            "Value":"Value2"
+          }
+        ]
+      }
+    },
+    "MySNSTopic":{
+      "Type":"AWS::SNS::Topic",
+      "Properties":{
+        "Subscription":[
+          {
+            "Endpoint":{
+              "Ref":"EmailAddress"
+            },
+            "Protocol":"email"
+          }
+        ]
+      }
+    },
     "CodeDeployEC2InstancesStack":{
       "Type":"AWS::CloudFormation::Stack",
       "Properties":{
@@ -129,6 +278,29 @@
             "Ref":"EC2KeyPairName"
           }
         }
+      }
+    },
+    "CodeCommitJavaRepo":{
+      "Type":"AWS::CodeCommit::Repository",
+      "Properties":{
+        "RepositoryName":{
+          "Ref":"AWS::StackName"
+        },
+        "RepositoryDescription":"CodeCommit Repository",
+        "Triggers":[
+          {
+            "Name":"MasterTrigger",
+            "CustomData":{
+              "Ref":"AWS::StackName"
+            },
+            "DestinationArn":{
+              "Ref":"MySNSTopic"
+            },
+            "Events":[
+              "all"
+            ]
+          }
+        ]
       }
     },
     "MyApplication":{
@@ -171,42 +343,6 @@
         }
       }
     },
-    "CodePipelineRole":{
-      "Type":"AWS::IAM::Role",
-      "Properties":{
-        "AssumeRolePolicyDocument":{
-          "Statement":[
-            {
-              "Effect":"Allow",
-              "Principal":{
-                "Service":[
-                  "codepipeline.amazonaws.com"
-                ]
-              },
-              "Action":[
-                "sts:AssumeRole"
-              ]
-            }
-          ]
-        },
-        "Path":"/",
-        "Policies":[
-          {
-            "PolicyName":"codepipeline-service",
-            "PolicyDocument":{
-              "Statement":[
-                {
-                  "Effect":"Allow",
-                  "Action":"*",
-                  "Resource":"*"
-                }
-              ],
-              "Version":"2012-10-17"
-            }
-          }
-        ]
-      }
-    },
     "CodePipelineStack":{
       "Type":"AWS::CodePipeline::Pipeline",
       "Properties":{
@@ -238,7 +374,7 @@
                   "Category":"Source",
                   "Owner":"AWS",
                   "Version":"1",
-                  "Provider":"S3"
+                  "Provider":"CodeCommit"
                 },
                 "OutputArtifacts":[
                   {
@@ -246,11 +382,11 @@
                   }
                 ],
                 "Configuration":{
-                  "S3Bucket":{
-                    "Ref":"CodeBuildS3Bucket"
+                  "BranchName":{
+                    "Ref":"RepositoryBranch"
                   },
-                  "S3ObjectKey":{
-                    "Ref":"CodeBuildS3ObjectKey"
+                  "RepositoryName":{
+                    "Ref":"RepositoryName"
                   }
                 },
                 "RunOrder":1
@@ -341,10 +477,47 @@
     }
   },
   "Outputs":{
-    "CodePipelineRole":{
+    "CloneUrlSsh":{
       "Value":{
-        "Ref":"CodePipelineRole"
+        "Fn::GetAtt":[
+          "CodeCommitJavaRepo",
+          "CloneUrlSsh"
+        ]
       }
+    },
+    "CodeCommitURL":{
+      "Value":{
+        "Fn::Join":[
+          "",
+          [
+            "https://console.aws.amazon.com/codecommit/home?region=",
+            {
+              "Ref":"AWS::Region"
+            },
+            "#/repository/",
+            {
+              "Ref":"RepositoryName"
+            },
+            "/browse/HEAD/--/"
+          ]
+        ]
+      },
+      "Description":"Git Repository URL"
+    },
+    "CodeDeployURL":{
+      "Value":{
+        "Fn::Join":[
+          "",
+          [
+            "https://console.aws.amazon.com/codedeploy/home?region=",
+            {
+              "Ref":"AWS::Region"
+            },
+            "#/deployments/"
+          ]
+        ]
+      },
+      "Description":"CodeDeploy URL"
     },
     "PipelineUrl":{
       "Value":{
