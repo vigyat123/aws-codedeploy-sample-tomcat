@@ -41,16 +41,6 @@
       "AllowedPattern":"[\\x20-\\x7E]*",
       "ConstraintDescription":"Can contain only ASCII characters."
     },
-    "CodeBuildS3Bucket":{
-      "Description":"S3 Bucket that contains source for CodeBuild",
-      "Type":"String",
-      "Default":"brian-codebuild"
-    },
-    "CodeBuildS3ObjectKey":{
-      "Description":"S3 Key that contains source for CodeBuild",
-      "Type":"String",
-      "Default":"aws-codedeploy-sample-tomcat-codebuild.zip"
-    },
     "CodeBuildProjectName":{
       "Description":"The unique name for the CodeBuild Environment",
       "Type":"String",
@@ -193,7 +183,7 @@
         ]
       }
     },
-    "CodeBuildProject":{
+    "CodeBuildJavaProject":{
       "Type":"AWS::CodeBuild::Project",
       "DependsOn":"CodeBuildRole",
       "Properties":{
@@ -345,6 +335,7 @@
     },
     "CodePipelineStack":{
       "Type":"AWS::CodePipeline::Pipeline",
+      "DependsOn":"CodeBuildJavaProject",
       "Properties":{
         "RoleArn":{
           "Fn::Join":[
@@ -416,7 +407,7 @@
                 ],
                 "Configuration":{
                   "ProjectName":{
-                    "Ref":"CodeBuildProjectName"
+                    "Ref":"CodeBuildJavaProject"
                   }
                 },
                 "RunOrder":1
@@ -485,6 +476,25 @@
         ]
       }
     },
+    "CodeBuildURL":{
+      "Value":{
+        "Fn::Join":[
+          "",
+          [
+            "https://console.aws.amazon.com/codebuild/home?region=",
+            {
+              "Ref":"AWS::Region"
+            },
+            "#/projects/",
+            {
+              "Ref":"CodeBuildJavaProject"
+            },
+            "/view"
+          ]
+        ]
+      },
+      "Description":"CodeBuild URL"
+    },
     "CodeCommitURL":{
       "Value":{
         "Fn::Join":[
@@ -535,7 +545,7 @@
           ]
         ]
       },
-      "Description":"Pipeline Url"
+      "Description":"CodePipeline Url"
     }
   }
 }
