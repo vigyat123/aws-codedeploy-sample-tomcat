@@ -4,13 +4,12 @@
   "Parameters":{
     "EmailAddress":{
       "Description":"Email Address",
-      "Default":"paul.duvall@stelligent.com",
       "Type":"String"
     },
     "RepositoryName":{
       "Description":"The name of the CodeCommit repo",
       "Type":"String",
-      "Default":"aws-codedeploy-sample-tomcat",
+      "Default":"PLACEHOLDER",
       "AllowedPattern":"[\\x20-\\x7E]*",
       "ConstraintDescription":"Can contain only ASCII characters."
     },
@@ -40,11 +39,6 @@
       "MaxLength":"255",
       "AllowedPattern":"[\\x20-\\x7E]*",
       "ConstraintDescription":"Can contain only ASCII characters."
-    },
-    "CodeBuildProjectName":{
-      "Description":"The unique name for the CodeBuild Environment",
-      "Type":"String",
-      "Default":"pmd-codebuild-1801"
     }
   },
   "Metadata":{
@@ -222,7 +216,7 @@
                 },
                 ".amazonaws.com/v1/repos/",
                 {
-                  "Ref":"RepositoryName"
+                  "Ref":"AWS::StackName"
                 }
               ]
             ]
@@ -377,7 +371,7 @@
                     "Ref":"RepositoryBranch"
                   },
                   "RepositoryName":{
-                    "Ref":"RepositoryName"
+                    "Ref":"AWS::StackName"
                   }
                 },
                 "RunOrder":1
@@ -468,14 +462,6 @@
     }
   },
   "Outputs":{
-    "CloneUrlSsh":{
-      "Value":{
-        "Fn::GetAtt":[
-          "CodeCommitJavaRepo",
-          "CloneUrlSsh"
-        ]
-      }
-    },
     "CodeBuildURL":{
       "Value":{
         "Fn::Join":[
@@ -506,7 +492,7 @@
             },
             "#/repository/",
             {
-              "Ref":"RepositoryName"
+              "Ref":"AWS::StackName"
             },
             "/browse/HEAD/--/"
           ]
