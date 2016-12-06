@@ -1,9 +1,9 @@
 {
-  "Description":"Integrate CodeBuild with CodePipeline. **WARNING** This template creates one or more Amazon EC2 instances. You will be billed for the AWS resources used if you create a stack from this template.",
+  "Description":"Automate provisioning of CodeBuild with CodePipeline, CodeCommit, and CodeDeploy. **WARNING** This template creates one or more Amazon EC2 instances. You will be billed for the AWS resources used if you create a stack from this template.",
   "AWSTemplateFormatVersion":"2010-09-09",
   "Parameters":{
     "EmailAddress":{
-      "Description":"Email Address",
+      "Description":"Email Address for sending SNS notifications",
       "Type":"String"
     },
     "RepositoryBranch":{
@@ -158,72 +158,9 @@
             "PolicyDocument":{
               "Statement":[
                 {
-                  "Action":[
-                    "codecommit:GetBranch",
-                    "codecommit:GetCommit",
-                    "codecommit:UploadArchive",
-                    "codecommit:GetUploadArchiveStatus",
-                    "codecommit:CancelUploadArchive"
-                  ],
-                  "Resource":"*",
-                  "Effect":"Allow"
-                },
-                {
-                  "Action":[
-                    "s3:GetObject",
-                    "s3:GetObjectVersion",
-                    "s3:GetBucketVersioning"
-                  ],
-                  "Resource":"*",
-                  "Effect":"Allow"
-                },
-                {
-                  "Action":[
-                    "s3:PutObject"
-                  ],
-                  "Resource":[
-                    "arn:aws:s3:::codepipeline*",
-                    "arn:aws:s3:::elasticbeanstalk*"
-                  ],
-                  "Effect":"Allow"
-                },
-                {
-                  "Action":[
-                    "codedeploy:CreateDeployment",
-                    "codedeploy:GetApplicationRevision",
-                    "codedeploy:GetDeployment",
-                    "codedeploy:GetDeploymentConfig",
-                    "codedeploy:RegisterApplicationRevision"
-                  ],
-                  "Resource":"*",
-                  "Effect":"Allow"
-                },
-                {
-                  "Action":[
-                    "elasticbeanstalk:*",
-                    "codebuild:*",
-                    "ec2:*",
-                    "elasticloadbalancing:*",
-                    "autoscaling:*",
-                    "cloudwatch:*",
-                    "s3:*",
-                    "sns:*",
-                    "cloudformation:*",
-                    "rds:*",
-                    "sqs:*",
-                    "ecs:*",
-                    "iam:PassRole"
-                  ],
-                  "Resource":"*",
-                  "Effect":"Allow"
-                },
-                {
-                  "Action":[
-                    "lambda:InvokeFunction",
-                    "lambda:ListFunctions"
-                  ],
-                  "Resource":"*",
-                  "Effect":"Allow"
+                  "Effect":"Allow",
+                  "Action":"*",
+                  "Resource":"*"
                 }
               ],
               "Version":"2012-10-17"
