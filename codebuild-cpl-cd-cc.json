@@ -3,7 +3,7 @@
   "AWSTemplateFormatVersion":"2010-09-09",
   "Parameters":{
     "EmailAddress":{
-      "Description":"Email Address for sending SNS notifications",
+      "Description":"Email Address for sending SNS notifications for CodeCommit",
       "Type":"String"
     },
     "RepositoryBranch":{
@@ -189,13 +189,7 @@
         "Environment":{
           "Type":"linuxContainer",
           "ComputeType":"BUILD_GENERAL1_SMALL",
-          "Image":"aws/codebuild/java:openjdk-8",
-          "EnvironmentVariables":[
-            {
-              "Name":"varName",
-              "Value":"varValue"
-            }
-          ]
+          "Image":"aws/codebuild/java:openjdk-8"
         },
         "Source":{
           "Location":{
@@ -218,12 +212,8 @@
         "TimeoutInMinutes":10,
         "Tags":[
           {
-            "Key":"Key1",
-            "Value":"Value1"
-          },
-          {
-            "Key":"Key2",
-            "Value":"Value2"
+            "Key":"Owner",
+            "Value":"JavaTomcatProject"
           }
         ]
       }
@@ -507,7 +497,25 @@
       },
       "Description":"CodeDeploy URL"
     },
-    "PipelineUrl":{
+    "CloneUrlSsh":{
+      "Value":{
+        "Fn::Join":[
+          "",
+          [
+            "git clone ",
+            {
+              "Fn::GetAtt":[
+                "CodeCommitJavaRepo",
+                "CloneUrlSsh"
+              ]
+            },
+            ""
+          ]
+        ]
+      },
+      "Description":"Git command for CodeCommit repository"
+    },
+    "CodePipelineURL":{
       "Value":{
         "Fn::Join":[
           "",
@@ -523,7 +531,7 @@
           ]
         ]
       },
-      "Description":"CodePipeline Url"
+      "Description":"CodePipeline URL"
     }
   }
 }
