@@ -459,8 +459,26 @@
           "Statement":[
             {
               "Effect":"Allow",
-              "Action":"*",
-              "Resource":"*"
+              "Resource":[
+                "*"
+              ],
+              "Action":[
+                "ec2:Describe*"
+              ]
+            },
+            {
+              "Effect":"Allow",
+              "Resource":[
+                "*"
+              ],
+              "Action":[
+                "autoscaling:CompleteLifecycleAction",
+                "autoscaling:DeleteLifecycleHook",
+                "autoscaling:DescribeLifecycleHooks",
+                "autoscaling:DescribeAutoScalingGroups",
+                "autoscaling:PutLifecycleHook",
+                "autoscaling:RecordLifecycleActionHeartbeat"
+              ]
             }
           ]
         },
@@ -500,7 +518,14 @@
           "Statement":[
             {
               "Effect":"Allow",
-              "Action":"*",
+              "Action":[
+                "ec2:*",
+                "codedeploy:*",
+                "autoscaling:Describe*",
+                "cloudformation:Describe*",
+                "cloudformation:GetTemplate",
+                "s3:Get*"
+              ],
               "Resource":"*"
             }
           ]
