@@ -214,7 +214,7 @@
           "Type":"no_artifacts"
         },
         "Environment":{
-          "Type":"linuxContainer",
+          "Type":"LINUX_CONTAINER",
           "ComputeType":"BUILD_GENERAL1_SMALL",
           "Image":"aws/codebuild/java:openjdk-8"
         },
