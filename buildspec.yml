@@ -5,6 +5,7 @@ phases:
       - mvn package
 artifacts:
   files:
+    - Procfile
     - appspec.yml
     - target/SampleMavenTomcatApp.war
     - scripts/*
