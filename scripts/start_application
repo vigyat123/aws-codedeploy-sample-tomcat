@@ -16,6 +16,22 @@ if [[ "$DEPLOY_TO_ROOT" = 'true' ]]; then
     CONTEXT_PATH='ROOT'
 fi
 
+file=$TEMP_STAGING_DIR
+bucket=codepipeline-us-east-1-766230510291
+resource="/${bucket}/${file}"
+contentType="application/x-compressed-war"
+dateValue=`date -R`
+stringToSign="PUT\n\n${contentType}\n${dateValue}\n${resource}"
+s3Key=AKIAI6XV7XDVJ224LK7Q
+s3Secret=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
+signature=`echo -en ${stringToSign} | openssl sha1 -hmac ${s3Secret} -binary | base64`
+curl -X PUT -T "${file}" \
+  -H "Host: ${bucket}.s3.amazonaws.com" \
+  -H "Date: ${dateValue}" \
+  -H "Content-Type: ${contentType}" \
+  -H "Authorization: AWS ${s3Key}:${signature}" \
+  https://${bucket}.s3.amazonaws.com/${file}
+
 # Remove unpacked application artifacts
 if [[ -f $CATALINA_HOME/webapps/$CONTEXT_PATH.war ]]; then
     rm $CATALINA_HOME/webapps/$CONTEXT_PATH.war
