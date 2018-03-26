@@ -1,2 +1,2 @@
 
-web: java -war SampleMavenTomcatApp.war
+web: java -war target/SampleMavenTomcatApp.war
