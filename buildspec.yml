@@ -9,3 +9,4 @@ artifacts:
     - appspec.yml
     - target/SampleMavenTomcatApp.war
     - scripts/*
+    - .ebextensions/*
