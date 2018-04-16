@@ -6,3 +6,4 @@ phases:
 artifacts:
   files:
     - target/SampleMavenTomcatApp.war
+  discard-paths: yes
